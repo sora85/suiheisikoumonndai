@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>水平思考ゲーム</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #1e1e2f;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 { margin-bottom: 10px; }
+
+  #question {
+    background: #2c2c54;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  input {
+    padding: 10px;
+    width: 60%;
+    border-radius: 5px;
+    border: none;
+  }
+
+  button {
+    padding: 10px 20px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #log {
+    margin-top: 20px;
+    text-align: left;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .yes { color: lightgreen; }
+  .no { color: tomato; }
+  .unknown { color: gray; }
+
+  #answer {
+    margin-top: 20px;
+    display: none;
+    background: #3a3a6a;
+    padding: 15px;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧠 水平思考ゲーム</h1>
+
+<div id="question">
+  男は毎日同じレストランで食事をしていたが、ある日を境に行かなくなった。一体なぜ？
+</div>
+
+<div>
+  <input id="input" placeholder="質問を入力（はい/いいえ
