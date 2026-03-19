@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>水平思考ゲーム（25問制限）</title>
+<title>水平思考ゲーム（自動問題＋25問制限）</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -13,9 +13,9 @@
     padding: 20px;
   }
 
-  #setup, #game { max-width: 700px; margin: auto; }
+  #game { max-width: 700px; margin: auto; }
 
-  textarea, input {
+  input {
     width: 90%;
     padding: 10px;
     margin: 10px 0;
@@ -69,19 +69,13 @@
 </head>
 <body>
 
-<h1>🧠 水平思考ゲーム（25問以内）</h1>
+<h1>🧠 水平思考ゲーム</h1>
 
-<div id="setup">
-  <h2>問題を作る</h2>
-  <textarea id="qInput" placeholder="問題文を入力"></textarea>
-  <textarea id="aInput" placeholder="答えを入力"></textarea>
-  <br>
-  <button onclick="startGame()">ゲーム開始</button>
-</div>
+<div id="game">
+  <button onclick="newGame()">新しい問題</button>
 
-<div id="game" style="display:none;">
   <div id="questionBox"></div>
-  <div id="counter">残り質問回数: 25</div>
+  <div id="counter"></div>
 
   <input id="userInput" placeholder="質問を入力（はい/いいえ）">
   <button id="askBtn" onclick="ask()">質問する</button>
@@ -91,42 +85,56 @@
   <div id="gameOver"></div>
 
   <button onclick="showAnswer()">答えを見る</button>
-  <button onclick="resetGame()">戻る</button>
 
   <div id="answerBox"></div>
 </div>
 
 <script>
-  let remaining = 25;
+  const problems = [
+    { q: "男は毎日同じレストランで食事をしていたが、ある日を境に行かなくなった。なぜ？", a: "その店で働いていたがクビになったから" },
+    { q: "男はエレベーターで毎日違う階までしか行かない。なぜ？", a: "背が低くてボタンが届かないから" },
+    { q: "雨の日だけ客が増える店がある。なぜ？", a: "傘を売っている店だから" },
+    { q: "男は毎日同じ時間に家を出るが、ある日だけ早く出た。なぜ？", a: "その日は遅刻しそうだったから" },
+    { q: "男は自分の家なのに入れなかった。なぜ？", a: "鍵を忘れたから" },
+    { q: "ある男は雨なのに傘をささず濡れなかった。なぜ？", a: "屋内にいたから" },
+    { q: "男は走っていたのにゴールできなかった。なぜ？", a: "競争ではなかったから" },
+    { q: "ある人は毎日同じ本を読むが飽きない。なぜ？", a: "勉強しているから" },
+    { q: "男はドアを開けたのに外に出られなかった。なぜ？", a: "別の部屋につながっていたから" },
+    { q: "ある店は商品を無料で配っているのに儲かっている。なぜ？", a: "広告収入があるから" },
+    { q: "男は水を飲んだのに喉の渇きが治らなかった。なぜ？", a: "海水だったから" },
+    { q: "女は毎日同じ服を着ているのに問題ない。なぜ？", a: "制服だから" },
+    { q: "ある人は毎日同じ道を通るが迷わない。なぜ？", a: "通勤ルートだから" }
+  ];
+
+  let current;
+  let remaining;
 
   const keywords = {
     "仕事": "yes",
     "働": "yes",
     "店": "yes",
     "クビ": "yes",
+    "身長": "yes",
+    "低い": "yes",
+    "雨": "yes",
+    "傘": "yes",
     "病気": "no",
     "死": "no",
     "事故": "no"
   };
 
-  function startGame() {
-    const q = document.getElementById("qInput").value;
-    const a = document.getElementById("aInput").value;
-
-    if (!q || !a) {
-      alert("問題と答えを入力してね");
-      return;
-    }
-
+  function newGame() {
+    current = problems[Math.floor(Math.random() * problems.length)];
     remaining = 25;
+
+    document.getElementById("questionBox").textContent = current.q;
+    document.getElementById("answerBox").textContent = current.a;
     document.getElementById("counter").textContent = `残り質問回数: ${remaining}`;
 
-    document.getElementById("questionBox").textContent = q;
-    document.getElementById("answerBox").textContent = a;
-
-    document.getElementById("setup").style.display = "none";
-    document.getElementById("game").style.display = "block";
+    document.getElementById("log").innerHTML = "";
+    document.getElementById("answerBox").style.display = "none";
     document.getElementById("gameOver").textContent = "";
+    document.getElementById("askBtn").disabled = false;
   }
 
   function ask() {
@@ -171,13 +179,8 @@
     document.getElementById("answerBox").style.display = "block";
   }
 
-  function resetGame() {
-    document.getElementById("setup").style.display = "block";
-    document.getElementById("game").style.display = "none";
-    document.getElementById("log").innerHTML = "";
-    document.getElementById("answerBox").style.display = "none";
-    document.getElementById("askBtn").disabled = false;
-  }
+  // 初期表示
+  newGame();
 </script>
 
 </body>
