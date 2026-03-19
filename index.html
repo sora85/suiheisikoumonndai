@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>水平思考ゲーム（自動問題＋25問制限）</title>
+<title>水平思考ゲーム（AI判定）</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -38,19 +38,11 @@
     margin-bottom: 10px;
   }
 
-  #counter {
-    margin-bottom: 10px;
-    font-weight: bold;
-  }
+  #counter { margin-bottom: 10px; font-weight: bold; }
 
-  #log {
-    margin-top: 20px;
-    text-align: left;
-  }
+  #log { margin-top: 20px; text-align: left; }
 
-  .yes { color: lightgreen; }
-  .no { color: tomato; }
-  .unknown { color: gray; }
+  .correct { color: gold; font-weight: bold; }
 
   #answerBox {
     margin-top: 20px;
@@ -60,16 +52,12 @@
     border-radius: 10px;
   }
 
-  #gameOver {
-    color: orange;
-    font-weight: bold;
-    margin-top: 15px;
-  }
+  #gameOver { color: orange; font-weight: bold; margin-top: 15px; }
 </style>
 </head>
 <body>
 
-<h1>🧠 水平思考ゲーム</h1>
+<h1>🧠 水平思考ゲーム（AI判定）</h1>
 
 <div id="game">
   <button onclick="newGame()">新しい問題</button>
@@ -77,8 +65,8 @@
   <div id="questionBox"></div>
   <div id="counter"></div>
 
-  <input id="userInput" placeholder="質問を入力（はい/いいえ）">
-  <button id="askBtn" onclick="ask()">質問する</button>
+  <input id="userInput" placeholder="質問 or 答えを入力">
+  <button id="askBtn" onclick="ask()">送信</button>
 
   <div id="log"></div>
 
@@ -90,38 +78,39 @@
 </div>
 
 <script>
+  const API_KEY = "YOUR_API_KEY_HERE"; // ←ここに自分のAPIキーを入れる
+
   const problems = [
     { q: "男は毎日同じレストランで食事をしていたが、ある日を境に行かなくなった。なぜ？", a: "その店で働いていたがクビになったから" },
-    { q: "男はエレベーターで毎日違う階までしか行かない。なぜ？", a: "背が低くてボタンが届かないから" },
-    { q: "雨の日だけ客が増える店がある。なぜ？", a: "傘を売っている店だから" },
-    { q: "男は毎日同じ時間に家を出るが、ある日だけ早く出た。なぜ？", a: "その日は遅刻しそうだったから" },
-    { q: "男は自分の家なのに入れなかった。なぜ？", a: "鍵を忘れたから" },
-    { q: "ある男は雨なのに傘をささず濡れなかった。なぜ？", a: "屋内にいたから" },
-    { q: "男は走っていたのにゴールできなかった。なぜ？", a: "競争ではなかったから" },
-    { q: "ある人は毎日同じ本を読むが飽きない。なぜ？", a: "勉強しているから" },
-    { q: "男はドアを開けたのに外に出られなかった。なぜ？", a: "別の部屋につながっていたから" },
-    { q: "ある店は商品を無料で配っているのに儲かっている。なぜ？", a: "広告収入があるから" },
-    { q: "男は水を飲んだのに喉の渇きが治らなかった。なぜ？", a: "海水だったから" },
-    { q: "女は毎日同じ服を着ているのに問題ない。なぜ？", a: "制服だから" },
-    { q: "ある人は毎日同じ道を通るが迷わない。なぜ？", a: "通勤ルートだから" }
+    { q: "男はエレベーターで毎日違う階までしか行かない。なぜ？", a: "背が低くてボタンが届かないから" }
   ];
 
   let current;
   let remaining;
 
-  const keywords = {
-    "仕事": "yes",
-    "働": "yes",
-    "店": "yes",
-    "クビ": "yes",
-    "身長": "yes",
-    "低い": "yes",
-    "雨": "yes",
-    "傘": "yes",
-    "病気": "no",
-    "死": "no",
-    "事故": "no"
-  };
+  async function isCorrectAI(input, answer) {
+    const prompt = `あなたは水平思考ゲームの判定者です。\n
+答え: ${answer}\n
+プレイヤーの回答: ${input}\n
+この回答は本質的に正しいですか？\n「はい」か「いいえ」だけで答えてください。`;
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+
+    return reply.includes("はい");
+  }
 
   function newGame() {
     current = problems[Math.floor(Math.random() * problems.length)];
@@ -137,41 +126,42 @@
     document.getElementById("askBtn").disabled = false;
   }
 
-  function ask() {
+  async function ask() {
     if (remaining <= 0) return;
 
-    const input = document.getElementById("userInput");
-    const text = input.value;
+    const inputEl = document.getElementById("userInput");
+    const text = inputEl.value;
     const log = document.getElementById("log");
 
     if (!text) return;
 
+    document.getElementById("askBtn").disabled = true;
+
+    const correct = await isCorrectAI(text, current.a);
+
+    if (correct) {
+      const div = document.createElement("div");
+      div.className = "correct";
+      div.textContent = `🎉 正解！ (${text})`;
+      log.appendChild(div);
+
+      document.getElementById("gameOver").textContent = "クリア！";
+      return;
+    }
+
     remaining--;
     document.getElementById("counter").textContent = `残り質問回数: ${remaining}`;
 
-    let result = "unknown";
-    for (let key in keywords) {
-      if (text.includes(key)) {
-        result = keywords[key];
-        break;
-      }
-    }
-
     const div = document.createElement("div");
-    div.className = result;
-
-    let reply = "わからない";
-    if (result === "yes") reply = "はい";
-    if (result === "no") reply = "いいえ";
-
-    div.textContent = `Q: ${text} → ${reply}`;
+    div.textContent = `Q: ${text} → 判定中AI: 不正解`;
     log.appendChild(div);
 
-    input.value = "";
+    inputEl.value = "";
 
     if (remaining === 0) {
       document.getElementById("gameOver").textContent = "ゲーム終了！答えを確認しよう";
-      document.getElementById("askBtn").disabled = true;
+    } else {
+      document.getElementById("askBtn").disabled = false;
     }
   }
 
@@ -179,9 +169,9 @@
     document.getElementById("answerBox").style.display = "block";
   }
 
-  // 初期表示
   newGame();
 </script>
 
 </body>
 </html>
+
