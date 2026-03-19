@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>水平思考ゲーム</title>
+<title>水平思考ゲーム（25問制限）</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -13,58 +13,172 @@
     padding: 20px;
   }
 
-  h1 { margin-bottom: 10px; }
+  #setup, #game { max-width: 700px; margin: auto; }
 
-  #question {
-    background: #2c2c54;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-  }
-
-  input {
+  textarea, input {
+    width: 90%;
     padding: 10px;
-    width: 60%;
+    margin: 10px 0;
     border-radius: 5px;
     border: none;
   }
 
   button {
     padding: 10px 20px;
-    margin-left: 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    margin: 5px;
+  }
+
+  #questionBox {
+    background: #2c2c54;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  #counter {
+    margin-bottom: 10px;
+    font-weight: bold;
   }
 
   #log {
     margin-top: 20px;
     text-align: left;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .yes { color: lightgreen; }
   .no { color: tomato; }
   .unknown { color: gray; }
 
-  #answer {
+  #answerBox {
     margin-top: 20px;
     display: none;
     background: #3a3a6a;
     padding: 15px;
     border-radius: 10px;
   }
+
+  #gameOver {
+    color: orange;
+    font-weight: bold;
+    margin-top: 15px;
+  }
 </style>
 </head>
 <body>
 
-<h1>🧠 水平思考ゲーム</h1>
+<h1>🧠 水平思考ゲーム（25問以内）</h1>
 
-<div id="question">
-  男は毎日同じレストランで食事をしていたが、ある日を境に行かなくなった。一体なぜ？
+<div id="setup">
+  <h2>問題を作る</h2>
+  <textarea id="qInput" placeholder="問題文を入力"></textarea>
+  <textarea id="aInput" placeholder="答えを入力"></textarea>
+  <br>
+  <button onclick="startGame()">ゲーム開始</button>
 </div>
 
-<div>
-  <input id="input" placeholder="質問を入力（はい/いいえ
+<div id="game" style="display:none;">
+  <div id="questionBox"></div>
+  <div id="counter">残り質問回数: 25</div>
+
+  <input id="userInput" placeholder="質問を入力（はい/いいえ）">
+  <button id="askBtn" onclick="ask()">質問する</button>
+
+  <div id="log"></div>
+
+  <div id="gameOver"></div>
+
+  <button onclick="showAnswer()">答えを見る</button>
+  <button onclick="resetGame()">戻る</button>
+
+  <div id="answerBox"></div>
+</div>
+
+<script>
+  let remaining = 25;
+
+  const keywords = {
+    "仕事": "yes",
+    "働": "yes",
+    "店": "yes",
+    "クビ": "yes",
+    "病気": "no",
+    "死": "no",
+    "事故": "no"
+  };
+
+  function startGame() {
+    const q = document.getElementById("qInput").value;
+    const a = document.getElementById("aInput").value;
+
+    if (!q || !a) {
+      alert("問題と答えを入力してね");
+      return;
+    }
+
+    remaining = 25;
+    document.getElementById("counter").textContent = `残り質問回数: ${remaining}`;
+
+    document.getElementById("questionBox").textContent = q;
+    document.getElementById("answerBox").textContent = a;
+
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    document.getElementById("gameOver").textContent = "";
+  }
+
+  function ask() {
+    if (remaining <= 0) return;
+
+    const input = document.getElementById("userInput");
+    const text = input.value;
+    const log = document.getElementById("log");
+
+    if (!text) return;
+
+    remaining--;
+    document.getElementById("counter").textContent = `残り質問回数: ${remaining}`;
+
+    let result = "unknown";
+    for (let key in keywords) {
+      if (text.includes(key)) {
+        result = keywords[key];
+        break;
+      }
+    }
+
+    const div = document.createElement("div");
+    div.className = result;
+
+    let reply = "わからない";
+    if (result === "yes") reply = "はい";
+    if (result === "no") reply = "いいえ";
+
+    div.textContent = `Q: ${text} → ${reply}`;
+    log.appendChild(div);
+
+    input.value = "";
+
+    if (remaining === 0) {
+      document.getElementById("gameOver").textContent = "ゲーム終了！答えを確認しよう";
+      document.getElementById("askBtn").disabled = true;
+    }
+  }
+
+  function showAnswer() {
+    document.getElementById("answerBox").style.display = "block";
+  }
+
+  function resetGame() {
+    document.getElementById("setup").style.display = "block";
+    document.getElementById("game").style.display = "none";
+    document.getElementById("log").innerHTML = "";
+    document.getElementById("answerBox").style.display = "none";
+    document.getElementById("askBtn").disabled = false;
+  }
+</script>
+
+</body>
+</html>
